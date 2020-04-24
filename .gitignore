@@ -1,0 +1,9 @@
+*
+
+!.gitignore
+!README.md
+
+!dg_examples
+!dg_examples/*.py
+
+!mnist_autoencoder*
