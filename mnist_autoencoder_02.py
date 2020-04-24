@@ -1,4 +1,4 @@
-"""Testing different discriminators """
+"""Testing different discriminators NLL Loss"""
 
 # %%
 
@@ -21,60 +21,66 @@ XDIM = 28 * 28
 ZDIM = 2
 BATCH = 100
 EPOCHS = 100
-LR = 0.0001
+LR = 0.001
 
 # -----------------------------------------------------------------------------
 # MODELS
 # -----------------------------------------------------------------------------
 
+DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
+print(DEVICE)
+
 data = MNISTMLP(batch_size=BATCH)
 train, test = data.get_loaders()
 
-encoder = MLPEncoder(xdim=XDIM, zdim=ZDIM)
-decoder = MLPDecoder(xdim=XDIM, zdim=ZDIM)
-discrim = MLPDiscriminator(zdim=ZDIM)
+encoder = MLPEncoder(xdim=XDIM, zdim=ZDIM).to(DEVICE)
+decoder = MLPDecoder(xdim=XDIM, zdim=ZDIM).to(DEVICE)
+discrim = MLPDiscriminator(zdim=ZDIM).to(DEVICE)
 
 gan_loss_fnc = DiscrimNegLogLoss()
 rcn_loss_fnc = torch.nn.MSELoss()
 
-# optimise all-in-one
-optim = torch.optim.Adam(
+optim_gen = torch.optim.Adam(encoder.parameters(), lr=LR)
+optim_dis = torch.optim.Adam(discrim.parameters(), lr=LR)
+optim_rcn = torch.optim.Adam(
     [p for p in encoder.parameters()] +
-    [p for p in decoder.parameters()] +
-    [p for p in discrim.parameters()], lr=LR
-)
+    [p for p in decoder.parameters()], lr=LR)
+opt = [optim_gen, optim_rcn, optim_dis]
 
 # %%
 
-WRITER = SummaryWriter(os.path.expanduser("~/runs/mnist/NLOG"))
+WRITER = SummaryWriter(os.path.expanduser("~/runs/mnist/NLL"))
 # in a terminal run:
 # tensorboard --logdir=~/runs/mnist
 
 k = 0
 for epoch in range(EPOCHS):
     for i, (x, _) in enumerate(train):
+        x = x.to(DEVICE)
         # reset optimiser
-        optim.zero_grad()
+        [o.zero_grad() for o in opt]
 
         # latent space
         z_fake = encoder(x)
-        z_real = torch.randn_like(z_fake)
-
-        # discrim
-        d_fake = discrim(z_fake)
-        d_real = discrim(z_real)
 
         # reconstruction
         x_rcn = decoder(z_fake)
-
-        # losses
-        d_loss = gan_loss_fnc(d_real, d_fake)
         r_loss = rcn_loss_fnc(x, x_rcn)
-        loss = d_loss + r_loss
+        r_loss.backward()
+        optim_rcn.step()
 
-        # update
-        loss.backward()
-        optim.step()
+        # discrim
+        d_fake = discrim(z_fake.detach())
+        d_real = discrim(torch.randn(BATCH, ZDIM, device=DEVICE))
+        d_loss = gan_loss_fnc(d_real, d_fake)
+        d_loss.backward()
+        optim_dis.step()
+
+        # generator
+        d_fake = discrim(encoder(x))
+        g_loss = - torch.log(d_fake + 1e-9).mean()
+        g_loss.backward()
+        optim_gen.step()
 
         # logging - the log file can get very large so only log 1/100
         if k % 100 == 0:
@@ -83,7 +89,7 @@ for epoch in range(EPOCHS):
             grid = torch.cat([x_grid, x_rcn_grid], dim=2)
             WRITER.add_scalar(f"Loss/d_loss", d_loss.item(), k)
             WRITER.add_scalar(f"Loss/r_loss", r_loss.item(), k)
-            WRITER.add_scalar(f"Loss/comb_loss", loss.item(), k)
+            WRITER.add_scalar(f"Loss/g_loss", g_loss.item(), k)
             WRITER.add_image("Image/x", grid, k)
             print(f"Evaluation: {k}")
         k += 1

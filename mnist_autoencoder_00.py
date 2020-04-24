@@ -20,7 +20,7 @@ XDIM = 28 * 28
 ZDIM = 2
 BATCH = 100
 EPOCHS = 100
-LR = 0.0001
+LR = 0.001
 
 # -----------------------------------------------------------------------------
 # MODELS
@@ -28,6 +28,7 @@ LR = 0.0001
 
 DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
 print(DEVICE)
+
 data = MNISTMLP(batch_size=BATCH)
 train, test = data.get_loaders()
 
