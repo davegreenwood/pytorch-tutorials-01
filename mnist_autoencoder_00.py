@@ -7,7 +7,7 @@ import torch
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import make_grid
 
-
+from dg_examples.utils import mnist_latent
 from dg_examples.data import MNISTMLP
 from dg_examples.models import (MLPDecoder, MLPEncoder)
 
@@ -75,7 +75,9 @@ for epoch in range(EPOCHS):
             x_grid = make_grid(x.reshape(BATCH, 1, 28, 28), nrow=10)
             x_rcn_grid = make_grid(x_rcn.reshape(BATCH, 1, 28, 28), nrow=10)
             grid = torch.cat([x_grid, x_rcn_grid], dim=2)
+            latent = mnist_latent(encoder, test, DEVICE)
             WRITER.add_scalar(f"Loss/r_loss", loss.item(), k)
+            WRITER.add_image("Image/z", latent, k)
             WRITER.add_image("Image/x", grid, k)
             print(f"Evaluation: {k}")
         k += 1

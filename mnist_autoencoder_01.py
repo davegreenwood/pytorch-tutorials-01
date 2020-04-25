@@ -88,7 +88,7 @@ for epoch in range(EPOCHS):
             x_grid = make_grid(x.reshape(BATCH, 1, 28, 28), nrow=10)
             x_rcn_grid = make_grid(x_rcn.reshape(BATCH, 1, 28, 28), nrow=10)
             grid = torch.cat([x_grid, x_rcn_grid], dim=2)
-            latent = mnist_latent(encoder, test)
+            latent = mnist_latent(encoder, test, DEVICE)
             WRITER.add_scalar(f"Loss/d_loss", d_loss.item(), k)
             WRITER.add_scalar(f"Loss/r_loss", r_loss.item(), k)
             WRITER.add_scalar(f"Loss/g_loss", g_loss.item(), k)

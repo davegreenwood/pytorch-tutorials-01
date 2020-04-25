@@ -32,11 +32,11 @@ kelly_colors = [
 ]
 
 
-def mnist_latent(encoder, test):
+def mnist_latent(encoder, test, device):
     """test is the test dataloader"""
 
     a, b = zip(*[i for i in test])
-    data = encoder(torch.cat(a, dim=0)).detach()
+    data = encoder(torch.cat(a, dim=0).to(device)).detach().cpu()
     label = torch.cat(b)
 
     fig, ax = plt.subplots(figsize=[8, 8], dpi=72)
