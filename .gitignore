@@ -7,3 +7,4 @@
 !dg_examples/*.py
 
 !mnist_autoencoder*
+!mnist_classifier*
