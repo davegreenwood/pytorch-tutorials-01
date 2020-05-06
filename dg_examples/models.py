@@ -42,7 +42,7 @@ class DiscrimNegLogLoss(torch.nn.Module):
 
 
 # -----------------------------------------------------------------------------
-# NETS
+# MLP NETS
 # -----------------------------------------------------------------------------
 
 
@@ -104,3 +104,22 @@ class MLPDiscriminator(torch.nn.Module):
 
     def forward(self, x):
         return self.model(x)
+
+
+class MLPClassifier(torch.nn.Module):
+    """A simple 3-layer MLP classifier"""
+    def __init__(self, xdim, nclasses=10, hidden=128):
+        super().__init__()
+        self.one = torch.nn.Linear(xdim, hidden)
+        self.two = torch.nn.Linear(hidden, hidden)
+        self.three = torch.nn.Linear(hidden, nclasses)
+        self.relu = torch.nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        """Override the forward method of torch.nn.Module"""
+        x = self.one(x)
+        x = self.relu(x)
+        x = self.two(x)
+        x = self.relu(x)
+        x = self.three(x)
+        return x
