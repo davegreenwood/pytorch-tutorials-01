@@ -1,9 +1,14 @@
 """utilities for plotting etc."""
 
 import torch
+from torchvision.transforms import ToTensor
 import numpy as np
+from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvas
+
+
+TOTEN = ToTensor()
 
 
 kelly_colors = [
@@ -30,6 +35,32 @@ kelly_colors = [
     "#E25822",
     "#2B3D26",
 ]
+
+
+def accuracy(testloader, model, device):
+    """Predict the test et accuracy."""
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for images, labels in testloader:
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    return correct, total
+
+
+def mnist_label_image(label):
+    device = label.device
+    img = Image.new('RGB', (28, 28), color=(0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.text((10, 5), str(int(label)), fill=(255, 255, 0))
+    return TOTEN(img).to(device)
+
+
+def mnist_label_images(labels):
+    return [mnist_label_image(label) for label in labels]
 
 
 def mnist_latent(encoder, test, device):
