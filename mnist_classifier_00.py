@@ -1,4 +1,4 @@
-"""Testing different discriminators """
+"""MLP MNIST classifier."""
 
 # %%
 

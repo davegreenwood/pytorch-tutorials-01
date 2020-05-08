@@ -1,4 +1,4 @@
-"""Testing different discriminators """
+"""CNN MNIST classifier"""
 
 # %%
 
