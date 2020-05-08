@@ -37,13 +37,17 @@ kelly_colors = [
 ]
 
 
-def accuracy(testloader, model, device):
+def accuracy(testloader, model, device, view=None):
     """Predict the test et accuracy."""
     correct = 0
     total = 0
     with torch.no_grad():
         for images, labels in testloader:
-            images, labels = images.to(device), labels.to(device)
+            labels = labels.to(device)
+            if view is not None:
+                images = images.view(view).to(device)
+            else:
+                images = images.to(device)
             outputs = model(images)
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
