@@ -123,3 +123,35 @@ class MLPClassifier(torch.nn.Module):
         x = self.relu(x)
         x = self.three(x)
         return x
+
+
+# -----------------------------------------------------------------------------
+# CNNs
+# -----------------------------------------------------------------------------
+
+
+class CNNClassifier(torch.nn.Module):
+    """A simple CNN classifier - with a final fully connected layer.
+
+    This model flattens the final Conv2d then outputs to nclasses.
+    """
+    def __init__(self, image_size=(3, 32, 32), nclasses=10):
+        super().__init__()
+        c, w, h = image_size
+        self.out_size = 24 * w * h
+        self.conv1 = torch.nn.Conv2d(c, 6, kernel_size=3, padding=1)
+        self.conv2 = torch.nn.Conv2d(6, 12, kernel_size=3, padding=1)
+        self.conv3 = torch.nn.Conv2d(12, 24, kernel_size=3, padding=1)
+        self.fc = torch.nn.Linear(self.out_size, nclasses)
+        self.relu = torch.nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        """Override the forward method of torch.nn.Module"""
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = self.conv2(x)
+        x = self.relu(x)
+        x = self.conv3(x)
+        x = self.relu(x)
+        x = self.fc(x.view(-1, self.out_size))
+        return x

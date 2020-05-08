@@ -12,3 +12,4 @@ Some examples using pytorch.
 ## Classifiers
 
 1. [MLP MNIST Classifier](mnist_classifier_00.py)
+2. [CNN MNIST Classifier](mnist_classifier_01.py)
