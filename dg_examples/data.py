@@ -9,6 +9,7 @@ import torchvision.transforms as transforms
 
 class ReshapeTransform:
     """An example of a callable for the transform stack."""
+
     def __init__(self, new_size):
         self.new_size = new_size
 
@@ -17,8 +18,7 @@ class ReshapeTransform:
 
 
 class Data:
-    """Torchvision datasets base class.
-    """
+    """Torchvision datasets base class. """
 
     def __init__(self, **kwargs):
 
@@ -47,15 +47,29 @@ class Data:
         self.testloader = torch.utils.data.DataLoader(self.testset, **dlargs)
 
     def get_loaders(self):
-        """get the tarin and test loaders"""
+        """get the train and test loaders"""
         return self.trainloader, self.testloader
 
 
 class MNISTMLP(Data):
     """The Mnist Data returned as flattened examples."""
+
     def __init__(self, **kwargs):
         reshape = ReshapeTransform((-1, ))
         toten = transforms.ToTensor()
         kwargs["transform"] = transforms.Compose([toten, reshape])
         super().__init__(**kwargs)
 
+
+class CIFAR10(Data):
+    """The CIFAR10 Data as 32x32 images."""
+
+    def __init__(self, **kwargs):
+
+        kwargs["dataset"] = torchvision.datasets.CIFAR10
+        kwargs["transform"] = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        self.classes = ["plane", "car", "bird", "cat",
+                        "deer", "dog", "frog", "horse", "ship", "truck"]
+        super().__init__(**kwargs)
